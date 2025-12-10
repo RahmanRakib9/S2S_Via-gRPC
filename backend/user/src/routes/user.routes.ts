@@ -80,5 +80,26 @@ router.patch('/profile', authenticateToken, updateProfileValidation, userControl
  */
 router.delete('/profile', authenticateToken, userController.deleteProfile);
 
+/**
+ * @route   GET /user/products
+ * @desc    Get all products (s2s communication with Product service)
+ * @access  Private
+ */
+router.get('/products', authenticateToken, userController.getProducts);
+
+/**
+ * @route   GET /user/products/:id
+ * @desc    Get product by ID (s2s communication with Product service)
+ * @access  Private
+ */
+router.get('/products/:id', authenticateToken, userController.getProductById);
+
+/**
+ * @route   GET /user/products/category/:category
+ * @desc    Get products by category (s2s communication with Product service)
+ * @access  Private
+ */
+router.get('/products/category/:category', authenticateToken, userController.getProductsByCategory);
+
 export default router;
 

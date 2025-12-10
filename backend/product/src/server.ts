@@ -1,9 +1,9 @@
 import app from './app';
 import { connectDatabase, disconnectDatabase } from './config/database';
+import { startGrpcServer, stopGrpcServer } from './grpc/server';
 import { initializeGrpcClient, closeGrpcClient } from './grpc/client';
-import { initializeProductGrpcClient, closeProductGrpcClient } from './grpc/product.client';
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3002;
 
 // Start server function
 const startServer = async (): Promise<void> => {
@@ -11,13 +11,15 @@ const startServer = async (): Promise<void> => {
     // Connect to MongoDB before starting server
     await connectDatabase();
 
-    // Initialize gRPC clients
+    // Initialize gRPC client to Auth service
     initializeGrpcClient();
-    initializeProductGrpcClient();
+
+    // Start gRPC server
+    await startGrpcServer();
 
     // Start HTTP server
     const server = app.listen(PORT, () => {
-      console.log(`🚀 User server running on port ${PORT}`);
+      console.log(`🚀 Product server running on port ${PORT}`);
       console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log(`🔗 Health check: http://localhost:${PORT}/health`);
     });
@@ -27,8 +29,8 @@ const startServer = async (): Promise<void> => {
       console.log(`${signal} signal received: closing servers`);
       server.close(async () => {
         console.log('HTTP server closed');
+        await stopGrpcServer();
         closeGrpcClient();
-        closeProductGrpcClient();
         await disconnectDatabase();
         process.exit(0);
       });
@@ -44,4 +46,5 @@ const startServer = async (): Promise<void> => {
 
 // Start the server
 startServer();
+
 

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import * as userService from '../services/user.service';
+import * as productClient from '../grpc/product.client';
 
 /**
  * Get current user's profile
@@ -130,6 +131,82 @@ export const getOrCreateProfile = async (req: Request, res: Response): Promise<v
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to retrieve profile';
+    res.status(500).json({ error: message });
+  }
+};
+
+/**
+ * Get all products (demonstrates s2s communication with Product service)
+ */
+export const getProducts = async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const products = await productClient.getAllProducts();
+
+    res.status(200).json({
+      message: 'Products retrieved successfully',
+      data: products,
+      count: products.length,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to retrieve products';
+    res.status(500).json({ error: message });
+  }
+};
+
+/**
+ * Get product by ID (demonstrates s2s communication with Product service)
+ */
+export const getProductById = async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const { id } = req.params;
+    const product = await productClient.getProductById(id);
+
+    if (!product) {
+      res.status(404).json({ error: 'Product not found' });
+      return;
+    }
+
+    res.status(200).json({
+      message: 'Product retrieved successfully',
+      data: product,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to retrieve product';
+    res.status(500).json({ error: message });
+  }
+};
+
+/**
+ * Get products by category (demonstrates s2s communication with Product service)
+ */
+export const getProductsByCategory = async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const { category } = req.params;
+    const products = await productClient.getProductsByCategory(category);
+
+    res.status(200).json({
+      message: 'Products retrieved successfully',
+      data: products,
+      count: products.length,
+      category,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to retrieve products';
     res.status(500).json({ error: message });
   }
 };

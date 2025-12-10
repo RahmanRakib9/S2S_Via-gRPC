@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package product;
+
+// Product service definition
+service ProductService {
+  // Get product by ID
+  rpc GetProductById (GetProductByIdRequest) returns (GetProductResponse);
+  
+  // Get all products
+  rpc GetAllProducts (GetAllProductsRequest) returns (GetAllProductsResponse);
+  
+  // Get products by category
+  rpc GetProductsByCategory (GetProductsByCategoryRequest) returns (GetAllProductsResponse);
+}
+
+// Product message
+message Product {
+  string id = 1;
+  string name = 2;
+  double price = 3;
+  string description = 4;
+  string category = 5;
+}
+
+// Request/Response messages for GetProductById
+message GetProductByIdRequest {
+  string productId = 1;
+}
+
+message GetProductResponse {
+  bool success = 1;
+  Product product = 2;
+  string error = 3;
+}
+
+// Request/Response messages for GetAllProducts
+message GetAllProductsRequest {
+}
+
+message GetAllProductsResponse {
+  bool success = 1;
+  repeated Product products = 2;
+  string error = 3;
+}
+
+// Request/Response messages for GetProductsByCategory
+message GetProductsByCategoryRequest {
+  string category = 1;
+}
+
+
