@@ -1,0 +1,53 @@
+{
+  "auth": {
+    "register": {
+      "email": "john.doe@example.com",
+      "username": "johndoe",
+      "password": "SecurePassword123!"
+    },
+    "login": {
+      "email": "john.doe@example.com",
+      "password": "SecurePassword123!"
+    },
+    "refreshToken": {
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    }
+  },
+  "userProfile": {
+    "createProfile": {
+      "firstName": "John",
+      "lastName": "Doe",
+      "phoneNumber": "+1234567890",
+      "dateOfBirth": "1990-01-15",
+      "address": {
+        "street": "123 Main Street",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "10001",
+        "country": "USA"
+      },
+      "bio": "Software developer passionate about building great applications.",
+      "avatar": "https://example.com/avatars/john-doe.jpg",
+      "preferences": {
+        "theme": "dark",
+        "language": "en",
+        "notifications": true
+      }
+    },
+    "createProfileMinimal": {
+      "firstName": "Jane",
+      "lastName": "Smith"
+    },
+    "updateProfile": {
+      "firstName": "John",
+      "lastName": "Doe Updated",
+      "phoneNumber": "+1234567890",
+      "bio": "Updated bio text",
+      "preferences": {
+        "theme": "light",
+        "notifications": false
+      }
+    }
+  }
+}
+

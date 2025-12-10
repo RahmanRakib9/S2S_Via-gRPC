@@ -1,5 +1,6 @@
 import app from './app';
 import { connectDatabase, disconnectDatabase } from './config/database';
+import { startGrpcServer, stopGrpcServer } from './grpc/server';
 
 const PORT = process.env.PORT || 3000;
 
@@ -9,6 +10,10 @@ const startServer = async (): Promise<void> => {
     // Connect to MongoDB before starting server
     await connectDatabase();
 
+    // Start gRPC server
+    await startGrpcServer();
+
+    // Start HTTP server
     const server = app.listen(PORT, () => {
       console.log(`🚀 Auth server running on port ${PORT}`);
       console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
@@ -17,9 +22,10 @@ const startServer = async (): Promise<void> => {
 
     // Graceful shutdown
     const gracefulShutdown = async (signal: string) => {
-      console.log(`${signal} signal received: closing HTTP server`);
+      console.log(`${signal} signal received: closing servers`);
       server.close(async () => {
         console.log('HTTP server closed');
+        await stopGrpcServer();
         await disconnectDatabase();
         process.exit(0);
       });

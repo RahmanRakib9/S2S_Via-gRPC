@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { verifyAccessToken } from '../config/jwt.config';
+import { validateToken } from '../grpc/client';
 import { TokenPayload } from '../types/user.types';
 
 // Extend Express Request to include user
@@ -12,14 +12,14 @@ declare global {
 }
 
 /**
- * Middleware to authenticate JWT tokens
- * Extracts token from Authorization header and verifies it
+ * Middleware to authenticate JWT tokens via gRPC
+ * Extracts token from Authorization header and verifies it through auth service
  */
-export const authenticateToken = (
+export const authenticateToken = async (
   req: Request,
   res: Response,
   next: NextFunction
-): void => {
+): Promise<void> => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
@@ -28,14 +28,19 @@ export const authenticateToken = (
     return;
   }
 
-  const payload = verifyAccessToken(token);
+  try {
+    const payload = await validateToken(token);
 
-  if (!payload) {
-    res.status(403).json({ error: 'Invalid or expired token' });
-    return;
+    if (!payload) {
+      res.status(403).json({ error: 'Invalid or expired token' });
+      return;
+    }
+
+    req.user = payload;
+    next();
+  } catch (error) {
+    console.error('gRPC authentication error:', error);
+    res.status(503).json({ error: 'Authentication service unavailable' });
   }
-
-  req.user = payload;
-  next();
 };
 

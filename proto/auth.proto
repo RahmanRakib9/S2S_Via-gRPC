@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package auth;
+
+// Auth service definition
+service AuthService {
+  // Validate JWT token and return user information
+  rpc ValidateToken (ValidateTokenRequest) returns (ValidateTokenResponse);
+  
+  // Get user information by user ID
+  rpc GetUserById (GetUserByIdRequest) returns (GetUserResponse);
+  
+  // Verify if a user exists by user ID
+  rpc VerifyUserExists (VerifyUserExistsRequest) returns (VerifyUserExistsResponse);
+}
+
+// Request/Response messages for ValidateToken
+message ValidateTokenRequest {
+  string token = 1;
+}
+
+message ValidateTokenResponse {
+  bool valid = 1;
+  string userId = 2;
+  string email = 3;
+  string username = 4;
+  string error = 5;
+}
+
+// Request/Response messages for GetUserById
+message GetUserByIdRequest {
+  string userId = 1;
+}
+
+message GetUserResponse {
+  bool success = 1;
+  string id = 2;
+  string email = 3;
+  string username = 4;
+  string error = 5;
+}
+
+// Request/Response messages for VerifyUserExists
+message VerifyUserExistsRequest {
+  string userId = 1;
+}
+
+message VerifyUserExistsResponse {
+  bool exists = 1;
+  string error = 2;
+}
+
