@@ -12,6 +12,12 @@ service ProductService {
   
   // Get products by category
   rpc GetProductsByCategory (GetProductsByCategoryRequest) returns (GetAllProductsResponse);
+  
+  // Buy a product
+  rpc BuyProduct (BuyProductRequest) returns (BuyProductResponse);
+  
+  // Get user purchases
+  rpc GetUserPurchases (GetUserPurchasesRequest) returns (GetUserPurchasesResponse);
 }
 
 // Product message
@@ -47,6 +53,42 @@ message GetAllProductsResponse {
 // Request/Response messages for GetProductsByCategory
 message GetProductsByCategoryRequest {
   string category = 1;
+}
+
+// Purchase message
+message Purchase {
+  string id = 1;
+  string userId = 2;
+  string productId = 3;
+  string productName = 4;
+  double price = 5;
+  int32 quantity = 6;
+  double totalAmount = 7;
+  string purchaseDate = 8;
+}
+
+// Request/Response messages for BuyProduct
+message BuyProductRequest {
+  string userId = 1;
+  string productId = 2;
+  int32 quantity = 3;
+}
+
+message BuyProductResponse {
+  bool success = 1;
+  Purchase purchase = 2;
+  string error = 3;
+}
+
+// Request/Response messages for GetUserPurchases
+message GetUserPurchasesRequest {
+  string userId = 1;
+}
+
+message GetUserPurchasesResponse {
+  bool success = 1;
+  repeated Purchase purchases = 2;
+  string error = 3;
 }
 
 

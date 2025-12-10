@@ -58,6 +58,20 @@ export interface Product {
 }
 
 /**
+ * Purchase interface
+ */
+export interface Purchase {
+  id: string;
+  userId: string;
+  productId: string;
+  productName: string;
+  price: number;
+  quantity: number;
+  totalAmount: number;
+  purchaseDate: string;
+}
+
+/**
  * Get product by ID via gRPC
  * @param productId - Product ID
  * @returns Product object or null if not found
@@ -159,6 +173,104 @@ export const getProductsByCategory = (category: string): Promise<Product[]> => {
           price: product.price,
           description: product.description || '',
           category: product.category || '',
+        }))
+      );
+    });
+  });
+};
+
+/**
+ * Purchase interface
+ */
+export interface Purchase {
+  id: string;
+  userId: string;
+  productId: string;
+  productName: string;
+  price: number;
+  quantity: number;
+  totalAmount: number;
+  purchaseDate: string;
+}
+
+/**
+ * Buy a product via gRPC
+ * @param userId - User ID
+ * @param productId - Product ID
+ * @param quantity - Quantity to purchase (default: 1)
+ * @returns Purchase object or null if failed
+ */
+export const buyProduct = (
+  userId: string,
+  productId: string,
+  quantity: number = 1
+): Promise<Purchase | null> => {
+  return new Promise((resolve, reject) => {
+    if (!client) {
+      reject(new Error('Product gRPC client not initialized'));
+      return;
+    }
+
+    client.buyProduct({ userId, productId, quantity }, (error: grpc.ServiceError | null, response: any) => {
+      if (error) {
+        console.error('gRPC BuyProduct error:', error);
+        resolve(null);
+        return;
+      }
+
+      if (!response.success || !response.purchase) {
+        resolve(null);
+        return;
+      }
+
+      resolve({
+        id: response.purchase.id,
+        userId: response.purchase.userId,
+        productId: response.purchase.productId,
+        productName: response.purchase.productName,
+        price: response.purchase.price,
+        quantity: response.purchase.quantity,
+        totalAmount: response.purchase.totalAmount,
+        purchaseDate: response.purchase.purchaseDate,
+      });
+    });
+  });
+};
+
+/**
+ * Get user purchases via gRPC
+ * @param userId - User ID
+ * @returns Array of purchases
+ */
+export const getUserPurchases = (userId: string): Promise<Purchase[]> => {
+  return new Promise((resolve, reject) => {
+    if (!client) {
+      reject(new Error('Product gRPC client not initialized'));
+      return;
+    }
+
+    client.getUserPurchases({ userId }, (error: grpc.ServiceError | null, response: any) => {
+      if (error) {
+        console.error('gRPC GetUserPurchases error:', error);
+        resolve([]);
+        return;
+      }
+
+      if (!response.success || !response.purchases) {
+        resolve([]);
+        return;
+      }
+
+      resolve(
+        response.purchases.map((purchase: any) => ({
+          id: purchase.id,
+          userId: purchase.userId,
+          productId: purchase.productId,
+          productName: purchase.productName,
+          price: purchase.price,
+          quantity: purchase.quantity,
+          totalAmount: purchase.totalAmount,
+          purchaseDate: purchase.purchaseDate,
         }))
       );
     });

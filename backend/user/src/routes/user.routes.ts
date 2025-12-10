@@ -101,5 +101,19 @@ router.get('/products/:id', authenticateToken, userController.getProductById);
  */
 router.get('/products/category/:category', authenticateToken, userController.getProductsByCategory);
 
+/**
+ * @route   POST /user/purchases
+ * @desc    Buy a product (s2s communication with Product service via gRPC)
+ * @access  Private
+ */
+router.post('/purchases', authenticateToken, userController.buyProduct);
+
+/**
+ * @route   GET /user/purchases
+ * @desc    Get my purchases (s2s communication with Product service via gRPC)
+ * @access  Private
+ */
+router.get('/purchases', authenticateToken, userController.getMyPurchases);
+
 export default router;
 

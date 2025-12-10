@@ -211,3 +211,60 @@ export const getProductsByCategory = async (req: Request, res: Response): Promis
   }
 };
 
+/**
+ * Buy a product (demonstrates s2s communication with Product service via gRPC)
+ */
+export const buyProduct = async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const { productId, quantity } = req.body;
+
+    if (!productId) {
+      res.status(400).json({ error: 'Product ID is required' });
+      return;
+    }
+
+    const purchase = await productClient.buyProduct(req.user.userId, productId, quantity || 1);
+
+    if (!purchase) {
+      res.status(500).json({ error: 'Failed to purchase product' });
+      return;
+    }
+
+    res.status(201).json({
+      message: 'Product purchased successfully',
+      data: purchase,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to purchase product';
+    res.status(500).json({ error: message });
+  }
+};
+
+/**
+ * Get my purchases (demonstrates s2s communication with Product service via gRPC)
+ */
+export const getMyPurchases = async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const purchases = await productClient.getUserPurchases(req.user.userId);
+
+    res.status(200).json({
+      message: 'Purchases retrieved successfully',
+      data: purchases,
+      count: purchases.length,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to retrieve purchases';
+    res.status(500).json({ error: message });
+  }
+};
+

@@ -1,6 +1,7 @@
 import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import productRoutes from './routes/product.routes';
+import purchaseRoutes from './routes/purchase.routes';
 
 const app: Express = express();
 
@@ -16,6 +17,7 @@ app.get('/health', (req: Request, res: Response) => {
 
 // API routes
 app.use('/product', productRoutes);
+app.use('/purchase', purchaseRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

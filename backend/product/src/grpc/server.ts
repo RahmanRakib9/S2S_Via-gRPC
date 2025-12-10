@@ -2,6 +2,7 @@ import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import path from 'path';
 import * as productService from '../services/product.service';
+import * as purchaseService from '../services/purchase.service';
 
 // Load proto file from project root (go up 2 levels from backend/product)
 const PROTO_PATH = path.join(process.cwd(), '../../proto/product.proto');
@@ -133,6 +134,94 @@ class ProductServiceImplementation {
       });
     }
   }
+
+  /**
+   * Buy a product
+   */
+  async buyProduct(
+    call: grpc.ServerUnaryCall<any, any>,
+    callback: grpc.sendUnaryData<any>
+  ): Promise<void> {
+    try {
+      const { userId, productId, quantity } = call.request;
+
+      if (!userId || !productId) {
+        callback(null, {
+          success: false,
+          purchase: null,
+          error: 'User ID and Product ID are required',
+        });
+        return;
+      }
+
+      const purchase = await purchaseService.buyProduct(userId, productId, quantity || 1);
+
+      callback(null, {
+        success: true,
+        purchase: {
+          id: purchase.id,
+          userId: purchase.userId,
+          productId: purchase.productId,
+          productName: purchase.productName,
+          price: purchase.price,
+          quantity: purchase.quantity,
+          totalAmount: purchase.totalAmount,
+          purchaseDate: purchase.purchaseDate.toISOString(),
+        },
+        error: '',
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to purchase product';
+      callback(null, {
+        success: false,
+        purchase: null,
+        error: errorMessage,
+      });
+    }
+  }
+
+  /**
+   * Get user purchases
+   */
+  async getUserPurchases(
+    call: grpc.ServerUnaryCall<any, any>,
+    callback: grpc.sendUnaryData<any>
+  ): Promise<void> {
+    try {
+      const { userId } = call.request;
+
+      if (!userId) {
+        callback(null, {
+          success: false,
+          purchases: [],
+          error: 'User ID is required',
+        });
+        return;
+      }
+
+      const purchases = await purchaseService.getUserPurchases(userId);
+
+      callback(null, {
+        success: true,
+        purchases: purchases.map((purchase) => ({
+          id: purchase.id,
+          userId: purchase.userId,
+          productId: purchase.productId,
+          productName: purchase.productName,
+          price: purchase.price,
+          quantity: purchase.quantity,
+          totalAmount: purchase.totalAmount,
+          purchaseDate: purchase.purchaseDate.toISOString(),
+        })),
+        error: '',
+      });
+    } catch (error) {
+      callback({
+        code: grpc.status.INTERNAL,
+        message: error instanceof Error ? error.message : 'Internal server error',
+      });
+    }
+  }
 }
 
 let grpcServer: grpc.Server | null = null;
@@ -155,6 +244,12 @@ export const startGrpcServer = (): Promise<void> => {
         },
         getProductsByCategory: (call: any, callback: any) => {
           new ProductServiceImplementation().getProductsByCategory(call, callback);
+        },
+        buyProduct: (call: any, callback: any) => {
+          new ProductServiceImplementation().buyProduct(call, callback);
+        },
+        getUserPurchases: (call: any, callback: any) => {
+          new ProductServiceImplementation().getUserPurchases(call, callback);
         },
       });
 

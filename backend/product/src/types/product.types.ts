@@ -28,4 +28,22 @@ export interface TokenPayload {
   username: string;
 }
 
+export interface Purchase {
+  id: string;
+  userId: string;
+  productId: string;
+  productName: string;
+  price: number;
+  quantity: number;
+  totalAmount: number;
+  purchaseDate: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface BuyProductRequest {
+  productId: string;
+  quantity?: number;
+}
+
 
