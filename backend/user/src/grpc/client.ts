@@ -1,6 +1,7 @@
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import path from 'path';
+import { captureGrpcError } from '../../../shared/sentry.config';
 import { AUTH_GRPC_URL } from '../config/grpc.config';
 import { TokenPayload } from '../types/user.types';
 
@@ -62,6 +63,13 @@ export const validateToken = (token: string): Promise<TokenPayload | null> => {
     client.validateToken({ token }, (error: grpc.ServiceError | null, response: any) => {
       if (error) {
         console.error('gRPC ValidateToken error:', error);
+        const grpcError = new Error(`gRPC ValidateToken error: ${error.message}`);
+        captureGrpcError(grpcError, {
+          service: 'auth',
+          method: 'validateToken',
+          statusCode: error.code,
+          metadata: { details: error.details },
+        });
         resolve(null);
         return;
       }
@@ -95,6 +103,13 @@ export const getUserById = (userId: string): Promise<{ id: string; email: string
     client.getUserById({ userId }, (error: grpc.ServiceError | null, response: any) => {
       if (error) {
         console.error('gRPC GetUserById error:', error);
+        const grpcError = new Error(`gRPC GetUserById error: ${error.message}`);
+        captureGrpcError(grpcError, {
+          service: 'auth',
+          method: 'getUserById',
+          statusCode: error.code,
+          metadata: { userId, details: error.details },
+        });
         resolve(null);
         return;
       }
@@ -128,6 +143,13 @@ export const verifyUserExists = (userId: string): Promise<boolean> => {
     client.verifyUserExists({ userId }, (error: grpc.ServiceError | null, response: any) => {
       if (error) {
         console.error('gRPC VerifyUserExists error:', error);
+        const grpcError = new Error(`gRPC VerifyUserExists error: ${error.message}`);
+        captureGrpcError(grpcError, {
+          service: 'auth',
+          method: 'verifyUserExists',
+          statusCode: error.code,
+          metadata: { userId, details: error.details },
+        });
         resolve(false);
         return;
       }

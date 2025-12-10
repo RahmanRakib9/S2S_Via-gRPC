@@ -1,4 +1,5 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
+import { captureApiError } from '../utils/sentry';
 
 const AUTH_API_URL = import.meta.env.VITE_AUTH_API_URL || 'http://localhost:3000';
 
@@ -8,6 +9,31 @@ const authApi = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// Add error interceptor to capture API errors
+authApi.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError) => {
+    if (error.response) {
+      captureApiError(
+        new Error(`API Error: ${error.response.status} ${error.response.statusText}`),
+        {
+          url: error.config?.url || '',
+          method: error.config?.method?.toUpperCase() || 'GET',
+          statusCode: error.response.status,
+          requestData: error.config?.data,
+        }
+      );
+    } else if (error.request) {
+      captureApiError(new Error('Network Error: No response received'), {
+        url: error.config?.url || '',
+        method: error.config?.method?.toUpperCase() || 'GET',
+        requestData: error.config?.data,
+      });
+    }
+    return Promise.reject(error);
+  }
+);
 
 export interface RegisterRequest {
   email: string;

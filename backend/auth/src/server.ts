@@ -1,6 +1,24 @@
+import dotenv from 'dotenv';
+import path from 'path';
+import * as Sentry from '@sentry/node';
+import { initializeSentry } from '../../shared/sentry.config';
 import app from './app';
 import { connectDatabase, disconnectDatabase } from './config/database';
 import { startGrpcServer, stopGrpcServer } from './grpc/server';
+
+// Load environment variables
+const nodeEnv = process.env.NODE_ENV || 'development';
+const envFile = nodeEnv === 'production' ? '.env.prod' : '.env.development';
+const envPath = path.join(process.cwd(), envFile);
+dotenv.config({ path: envPath });
+
+// Initialize Sentry BEFORE any other imports
+initializeSentry({
+  dsn: process.env.SENTRY_DSN || '',
+  environment: process.env.SENTRY_ENVIRONMENT || process.env.NODE_ENV || 'development',
+  release: process.env.SENTRY_RELEASE,
+  serviceName: 'auth',
+});
 
 const PORT = process.env.PORT || 3000;
 
@@ -35,6 +53,7 @@ const startServer = async (): Promise<void> => {
     process.on('SIGINT', () => gracefulShutdown('SIGINT'));
   } catch (error) {
     console.error('Failed to start server:', error);
+    Sentry.captureException(error instanceof Error ? error : new Error(String(error)));
     process.exit(1);
   }
 };

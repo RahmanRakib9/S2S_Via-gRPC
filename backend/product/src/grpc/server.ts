@@ -1,6 +1,7 @@
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import path from 'path';
+import { captureGrpcError } from '../../../shared/sentry.config';
 import * as productService from '../services/product.service';
 import * as purchaseService from '../services/purchase.service';
 
@@ -58,6 +59,12 @@ class ProductServiceImplementation {
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Product not found';
+      const err = error instanceof Error ? error : new Error(String(error));
+      captureGrpcError(err, {
+        service: 'product',
+        method: 'getProductById',
+        metadata: { productId: call.request.productId },
+      });
       callback(null, {
         success: false,
         product: null,
@@ -88,6 +95,11 @@ class ProductServiceImplementation {
         error: '',
       });
     } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      captureGrpcError(err, {
+        service: 'product',
+        method: 'getAllProducts',
+      });
       callback({
         code: grpc.status.INTERNAL,
         message: error instanceof Error ? error.message : 'Internal server error',
@@ -128,6 +140,12 @@ class ProductServiceImplementation {
         error: '',
       });
     } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      captureGrpcError(err, {
+        service: 'product',
+        method: 'getProductsByCategory',
+        metadata: { category: call.request.category },
+      });
       callback({
         code: grpc.status.INTERNAL,
         message: error instanceof Error ? error.message : 'Internal server error',
@@ -172,6 +190,16 @@ class ProductServiceImplementation {
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to purchase product';
+      const err = error instanceof Error ? error : new Error(String(error));
+      captureGrpcError(err, {
+        service: 'product',
+        method: 'buyProduct',
+        metadata: {
+          userId: call.request.userId,
+          productId: call.request.productId,
+          quantity: call.request.quantity,
+        },
+      });
       callback(null, {
         success: false,
         purchase: null,
@@ -216,6 +244,12 @@ class ProductServiceImplementation {
         error: '',
       });
     } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      captureGrpcError(err, {
+        service: 'product',
+        method: 'getUserPurchases',
+        metadata: { userId: call.request.userId },
+      });
       callback({
         code: grpc.status.INTERNAL,
         message: error instanceof Error ? error.message : 'Internal server error',
@@ -262,6 +296,11 @@ export const startGrpcServer = (): Promise<void> => {
         (error, port) => {
           if (error) {
             console.error('❌ Failed to start gRPC server:', error);
+            const err = error instanceof Error ? error : new Error(String(error));
+            captureGrpcError(err, {
+              service: 'product',
+              method: 'startGrpcServer',
+            });
             reject(error);
             return;
           }
@@ -273,6 +312,11 @@ export const startGrpcServer = (): Promise<void> => {
       );
     } catch (error) {
       console.error('❌ Error starting gRPC server:', error);
+      const err = error instanceof Error ? error : new Error(String(error));
+      captureGrpcError(err, {
+        service: 'product',
+        method: 'startGrpcServer',
+      });
       reject(error);
     }
   });

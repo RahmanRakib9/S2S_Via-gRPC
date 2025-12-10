@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { setUserContext, clearUserContext } from '../utils/sentry';
 import { tokenUtil } from '../utils/token.util';
 import { authService, User } from '../services/auth.service';
 
@@ -38,11 +39,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         try {
           const token = tokenUtil.getAccessToken();
           if (token) {
-            const response = await authService.getMe(token);
-            setUser(response.data);
+          const response = await authService.getMe(token);
+          setUser(response.data);
+          setUserContext({
+            id: response.data.id,
+            email: response.data.email,
+            username: response.data.username,
+          });
           }
         } catch (error) {
           console.error('Failed to get user:', error);
+          clearUserContext();
           tokenUtil.clearTokens();
         }
       }
@@ -56,17 +63,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const response = await authService.login({ email, password });
     tokenUtil.setTokens(response.data.accessToken, response.data.refreshToken);
     setUser(response.data.user);
+    setUserContext({
+      id: response.data.user.id,
+      email: response.data.user.email,
+      username: response.data.user.username,
+    });
   };
 
   const register = async (email: string, username: string, password: string) => {
     const response = await authService.register({ email, username, password });
     tokenUtil.setTokens(response.data.accessToken, response.data.refreshToken);
     setUser(response.data.user);
+    setUserContext({
+      id: response.data.user.id,
+      email: response.data.user.email,
+      username: response.data.user.username,
+    });
   };
 
   const logout = () => {
     tokenUtil.clearTokens();
     setUser(null);
+    clearUserContext();
   };
 
   const refreshUser = async () => {
@@ -76,9 +94,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (token) {
           const response = await authService.getMe(token);
           setUser(response.data);
+          setUserContext({
+            id: response.data.id,
+            email: response.data.email,
+            username: response.data.username,
+          });
         }
       } catch (error) {
         console.error('Failed to refresh user:', error);
+        clearUserContext();
         logout();
       }
     }

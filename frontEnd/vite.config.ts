@@ -7,5 +7,8 @@ export default defineConfig({
     port: 5173,
     open: true,
   },
+  build: {
+    sourcemap: true, // Generate source maps for better error tracking in Sentry
+  },
 });
 

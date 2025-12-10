@@ -1,6 +1,7 @@
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import path from 'path';
+import { captureGrpcError } from '../../../shared/sentry.config';
 import { PRODUCT_GRPC_URL } from '../config/grpc.config';
 
 // Load proto file from project root (go up 2 levels from backend/user)
@@ -86,6 +87,13 @@ export const getProductById = (productId: string): Promise<Product | null> => {
     client.getProductById({ productId }, (error: grpc.ServiceError | null, response: any) => {
       if (error) {
         console.error('gRPC GetProductById error:', error);
+        const grpcError = new Error(`gRPC GetProductById error: ${error.message}`);
+        captureGrpcError(grpcError, {
+          service: 'product',
+          method: 'getProductById',
+          statusCode: error.code,
+          metadata: { productId, details: error.details },
+        });
         resolve(null);
         return;
       }
@@ -120,6 +128,13 @@ export const getAllProducts = (): Promise<Product[]> => {
     client.getAllProducts({}, (error: grpc.ServiceError | null, response: any) => {
       if (error) {
         console.error('gRPC GetAllProducts error:', error);
+        const grpcError = new Error(`gRPC GetAllProducts error: ${error.message}`);
+        captureGrpcError(grpcError, {
+          service: 'product',
+          method: 'getAllProducts',
+          statusCode: error.code,
+          metadata: { details: error.details },
+        });
         resolve([]);
         return;
       }
@@ -157,6 +172,13 @@ export const getProductsByCategory = (category: string): Promise<Product[]> => {
     client.getProductsByCategory({ category }, (error: grpc.ServiceError | null, response: any) => {
       if (error) {
         console.error('gRPC GetProductsByCategory error:', error);
+        const grpcError = new Error(`gRPC GetProductsByCategory error: ${error.message}`);
+        captureGrpcError(grpcError, {
+          service: 'product',
+          method: 'getProductsByCategory',
+          statusCode: error.code,
+          metadata: { category, details: error.details },
+        });
         resolve([]);
         return;
       }
@@ -214,6 +236,13 @@ export const buyProduct = (
     client.buyProduct({ userId, productId, quantity }, (error: grpc.ServiceError | null, response: any) => {
       if (error) {
         console.error('gRPC BuyProduct error:', error);
+        const grpcError = new Error(`gRPC BuyProduct error: ${error.message}`);
+        captureGrpcError(grpcError, {
+          service: 'product',
+          method: 'buyProduct',
+          statusCode: error.code,
+          metadata: { userId, productId, quantity, details: error.details },
+        });
         resolve(null);
         return;
       }
@@ -252,6 +281,13 @@ export const getUserPurchases = (userId: string): Promise<Purchase[]> => {
     client.getUserPurchases({ userId }, (error: grpc.ServiceError | null, response: any) => {
       if (error) {
         console.error('gRPC GetUserPurchases error:', error);
+        const grpcError = new Error(`gRPC GetUserPurchases error: ${error.message}`);
+        captureGrpcError(grpcError, {
+          service: 'product',
+          method: 'getUserPurchases',
+          statusCode: error.code,
+          metadata: { userId, details: error.details },
+        });
         resolve([]);
         return;
       }
